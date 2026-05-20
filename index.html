@@ -215,7 +215,7 @@ async function fetchInsight(){
   const urgStr=urg.map(r=>`- ${r.Vendedor} (S${r.Semana}): ${r['Notas de cambios']||'Sin notas'} [${r.Estado}]`).join('\n');
   const prompt=`Eres un asistente especializado en S&OP para una empresa de materiales plásticos (compuestos y plastificantes).\n\nCONTEXTO: ${semLabel}\nPARTICIPACIÓN: ${ent.length} de 14 vendedores entregaron su estimado.\nENTREGARON: ${ent.join(', ')}\nPENDIENTES: ${pen.length>0?pen.join(', '):'Ninguno'}\nDISTRIBUCIÓN: Revisar: ${cnt['Revisar']||0}, Revisado: ${cnt['Revisado']||0}, Sin cambios: ${cnt['Sin cambios']||0}\nFUERA DE TIEMPO: ${ft.length} registros\n\nREGISTROS PARA REVISAR EN JUNTA:\n${urgStr||'Ninguno'}\n\nGenera:\n1. 📋 APERTURA DE JUNTA (2-3 oraciones ejecutivas para arrancar la sesión S&OP)\n2. 🔥 PUNTOS CRÍTICOS (máx. 3 bullets concretos con clientes y SKUs específicos cuando aplique)\n3. ⚠️ ALERTAS OPERATIVAS (patrones recurrentes, clientes frecuentes, urgencias de inventario o exportación)\n4. ✅ ACCIÓN PARA PENDIENTES\n\nResponde en español, tono ejecutivo, conciso y accionable.`;
   try{
-    const res=await fetch('/.netlify/functions/claude-proxy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
+    const res=await fetch('/.netlify/functions/claude-proxy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-3-5-haiku-20241022',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
     const d=await res.json();
     if(d.error){
       out.innerHTML=`<div style="color:#ef4444;padding:10px">✗ Error API: ${d.error.message||JSON.stringify(d.error)}</div>`;
