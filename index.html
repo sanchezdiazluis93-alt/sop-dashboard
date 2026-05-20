@@ -217,8 +217,12 @@ async function fetchInsight(){
   try{
     const res=await fetch('/.netlify/functions/claude-proxy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
     const d=await res.json();
-    const text=(d.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
-    out.innerHTML=text?`<div style="white-space:pre-wrap;line-height:1.8">${text}</div>`:'<div style="color:#ef4444">Sin respuesta. Intenta de nuevo.</div>';
+    if(d.error){
+      out.innerHTML=`<div style="color:#ef4444;padding:10px">✗ Error API: ${d.error.message||JSON.stringify(d.error)}</div>`;
+    } else {
+      const text=(d.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+      out.innerHTML=text?`<div style="white-space:pre-wrap;line-height:1.8">${text}</div>`:'<div style="color:#ef4444">Sin respuesta. Intenta de nuevo.</div>';
+    }
   }catch(e){out.innerHTML=`<div style="color:#ef4444;padding:10px">✗ ${e.message||'Error desconocido'}</div>`;}
   btn.disabled=false;btn.textContent='✦ Generar Insights';
 }
