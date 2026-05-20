@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Dashboard S&OP · Alphagary</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f1f5f9;color:#1e293b;min-height:100vh;padding:24px;font-size:13px}
+  h2{font-size:12px;font-weight:600;color:#64748b;margin-bottom:14px;text-transform:uppercase;letter-spacing:.6px}
+  .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+  .header h1{font-size:22px;font-weight:700;color:#0f172a}
+  .header p{font-size:12px;color:#64748b;margin-top:4px}
+  select{background:#fff;border:1px solid #e2e8f0;color:#1e293b;padding:8px 14px;border-radius:8px;font-size:13px;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  select:focus{outline:none;border-color:#3b82f6}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+  .kpi{background:#fff;border-radius:10px;padding:16px;border-left:4px solid var(--c);box-shadow:0 1px 4px rgba(0,0,0,.07)}
+  .kpi-val{font-size:30px;font-weight:700;color:var(--c);line-height:1}
+  .kpi-label{font-size:11px;color:#94a3b8;margin-top:5px}
+  .row2{display:grid;grid-template-columns:230px 1fr;gap:14px;margin-bottom:14px}
+  .row3{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+  .card{background:#fff;border-radius:10px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,.07)}
+  .card-amber h2{color:#d97706}
+  table{width:100%;border-collapse:collapse}
+  th{padding:9px 12px;text-align:left;border-bottom:1px solid rgba(217,119,6,.25);color:#d97706;background:rgba(245,158,11,.07);font-weight:600}
+  td{padding:8px 12px;border-bottom:1px solid #f1f5f9;vertical-align:top;line-height:1.5}
+  tr:hover td{background:#fafafa}
+  .b{font-weight:600;white-space:nowrap}
+  .note{color:#475569;max-width:280px}
+  .badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
+  .b-ok{background:rgba(34,197,94,.12);color:#16a34a}
+  .b-tarde{background:rgba(239,68,68,.1);color:#dc2626}
+  .b-sem{background:rgba(59,130,246,.1);color:#2563eb}
+  .donut-center{text-align:center;margin:-6px 0 10px}
+  .donut-center .num{font-size:34px;font-weight:700;color:#3b82f6}
+  .donut-center .denom{font-size:16px;color:#94a3b8}
+  .pending-area{margin-top:10px}
+  .pending-area .plabel{font-size:11px;color:#d97706;margin-bottom:5px}
+  .tag{display:inline-block;background:rgba(245,158,11,.12);color:#d97706;font-size:11px;padding:2px 7px;border-radius:4px;margin:2px;border:1px solid rgba(217,119,6,.2)}
+  .empty{color:#94a3b8;text-align:center;padding:18px;font-style:italic}
+  .ai-section{background:#fff;border-radius:10px;padding:20px;border:1px solid #e0e7ff;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.07)}
+  .ai-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+  .ai-header h2{margin:0;color:#6366f1;font-size:13px;letter-spacing:.5px}
+  .ai-btn{background:linear-gradient(135deg,#3b82f6,#8b5cf6);border:none;color:#fff;padding:9px 20px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600}
+  .ai-btn:disabled{background:#e2e8f0;color:#94a3b8;cursor:not-allowed}
+  #ai-output{background:#f8fafc;border-radius:8px;padding:16px;font-size:13px;line-height:1.8;color:#334155;border:1px solid #e2e8f0;min-height:70px}
+  .pill{background:#f1f5f9;border:1px solid #e2e8f0;color:#64748b;padding:4px 12px;border-radius:20px;cursor:pointer;font-size:11px;font-weight:600;transition:all .15s}
+  .pill:hover{background:#e2e8f0}
+  .pill-active{background:#d97706;border-color:#d97706;color:#fff}
+  .footer{text-align:center;color:#cbd5e1;font-size:11px;padding-top:8px}
+  @media(max-width:700px){.kpis{grid-template-columns:1fr 1fr}.row2,.row3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="header">
+  <div><h1>&#128202; Dashboard S&amp;OP</h1><p>Control de estimados semanales &middot; Equipo de 14 vendedores &middot; Orbia-Alphagary</p></div>
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <label style="color:#64748b;font-size:12px">Filtrar semana:</label>
+    <select id="semanaFilter" onchange="update()"><option value="all">Todas las semanas</option></select>
+    <button onclick="recargar()" id="refreshBtn" style="background:#f1f5f9;border:1px solid #e2e8f0;color:#475569;padding:7px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600">&#8635; Actualizar</button>
+  </div>
+</div>
+<div id="loading-banner" style="display:none;background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8;padding:10px 16px;border-radius:8px;margin-bottom:16px;font-size:13px;text-align:center">⏳ Cargando datos desde Airtable...</div>
+<div class="kpis">
+  <div class="kpi" style="--c:#3b82f6"><div class="kpi-val" id="k-total">0</div><div class="kpi-label">Total de Reportes</div></div>
+  <div class="kpi" style="--c:#ef4444"><div class="kpi-val" id="k-revisar">0</div><div class="kpi-label">Requieren Revisi&oacute;n</div></div>
+  <div class="kpi" style="--c:#22c55e"><div class="kpi-val" id="k-revisado">0</div><div class="kpi-label">Revisados &#10003;</div></div>
+  <div class="kpi" style="--c:#f59e0b"><div class="kpi-val" id="k-pendiente">0</div><div class="kpi-label">Pendientes de Entregar</div></div>
+</div>
+<div class="row2">
+  <div class="card">
+    <h2>A &middot; Participaci&oacute;n del Equipo &middot; Puntualidad</h2>
+    <canvas id="donutChart" height="180"></canvas>
+    <div class="donut-center"><span class="num" id="ent-num">0</span><span class="denom"> / 14</span></div>
+    <div class="pending-area"><div class="plabel" id="pending-label"></div><div id="pending-tags"></div></div>
+  </div>
+  <div class="card card-amber">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px">
+      <h2 style="margin:0">B &middot; Notas del Equipo &middot; Junta S&amp;OP</h2>
+      <div style="display:flex;gap:6px" id="pillsB">
+        <button onclick="setFiltroB('Revisar')" class="pill pill-active" id="pill-Revisar">&#9888; Revisar</button>
+        <button onclick="setFiltroB('Revisado')" class="pill" id="pill-Revisado">&#10003; Revisado</button>
+        <button onclick="setFiltroB('Todos')" class="pill" id="pill-Todos">&#9776; Todos</button>
+      </div>
+    </div>
+    <div style="overflow-x:auto;max-height:270px;overflow-y:auto">
+      <table><thead><tr><th>Vendedor</th><th>Semana</th><th>Notas de Cambios</th></tr></thead><tbody id="urgentes-body"></tbody></table>
+    </div>
+  </div>
+</div>
+<div class="row3">
+  <div class="card"><h2>C &middot; Distribuci&oacute;n de Estatus del Equipo</h2><canvas id="barChart" height="140"></canvas></div>
+  <div class="card"><h2>D &middot; Hist&oacute;rico de Entregas por Semana</h2><canvas id="lineChart" height="140"></canvas></div>
+</div>
+<div style="margin-bottom:14px">
+<div class="ai-section">
+  <div class="ai-header">
+    <h2>&#10022; AN&Aacute;LISIS CLAUDE AI &middot; Insights Accionables para la Junta S&amp;OP</h2>
+    <button class="ai-btn" id="aiBtn" onclick="fetchInsight()">&#10022; Generar Insights</button>
+  </div>
+  <div id="ai-output"><div style="color:#475569;text-align:center;padding:20px;font-style:italic">Selecciona una semana o usa &ldquo;Todas las semanas&rdquo; y presiona <strong>Generar Insights</strong> para obtener un an&aacute;lisis accionable preparado por Claude.</div></div>
+</div>
+<div class="footer">Dashboard S&amp;OP v1.0 &middot; Fase 1 &middot; Construido con Claude AI</div>
+<script>
+const RAW=[{"Marca temporal":"24/2/2026 16:09:05","Vendedor":"Luis","Semana":9,"Estado de Revisión":"Revisar","Notas de cambios":"Incremento en consumo de BBRAUN","Volumen Estimado: Compuestos":517,"Volumen Estimado: Plastificantes":120,"Estado":"A tiempo","Día":"martes","Hora":16},{"Marca temporal":"25/2/2026 10:11:00","Vendedor":"Irene","Semana":9,"Estado de Revisión":"Revisado","Notas de cambios":"nuevos pedidos de Capri","Volumen Estimado: Compuestos":350,"Volumen Estimado: Plastificantes":0,"Estado":"A tiempo","Día":"miércoles","Hora":10},{"Marca temporal":"25/2/2026 10:16:11","Vendedor":"Omar","Semana":9,"Estado de Revisión":"Sin cambios","Notas de cambios":"Pedidos iguales","Volumen Estimado: Compuestos":400,"Volumen Estimado: Plastificantes":120,"Estado":"A tiempo","Día":"miércoles","Hora":10},{"Marca temporal":"25/2/2026 10:17:07","Vendedor":"Juan","Semana":9,"Estado de Revisión":"Revisar","Notas de cambios":"Nuevos pedidos de Manner ya en sistema","Volumen Estimado: Compuestos":455,"Volumen Estimado: Plastificantes":222,"Estado":"A tiempo","Día":"miércoles","Hora":10},{"Marca temporal":"7/1/2026 0:00:00","Vendedor":"Rafael","Semana":3,"Estado de Revisión":"Revisar","Notas de cambios":"Nuevos pedidos","Volumen Estimado: Compuestos":500,"Volumen Estimado: Plastificantes":300,"Estado":"A tiempo","Día":"miércoles","Hora":0},{"Marca temporal":"18/2/2026 0:00:00","Vendedor":"Daniel","Semana":1,"Estado de Revisión":"Sin cambios","Notas de cambios":"Sin cambios","Volumen Estimado: Compuestos":100,"Volumen Estimado: Plastificantes":100,"Estado":"A tiempo","Día":"miércoles","Hora":0},{"Marca temporal":"4/3/2026 14:39:14","Vendedor":"Luis","Semana":10,"Estado de Revisión":"Revisar","Notas de cambios":"Adelanto de pedidos para CCS y potencial redistribución de BBRAUN/GVS","Volumen Estimado: Compuestos":null,"Volumen Estimado: Plastificantes":null,"Estado":"A tiempo","Día":"miércoles","Hora":14},{"Marca temporal":"4/3/2026 15:48:24","Vendedor":"Jose Maria","Semana":10,"Estado de Revisión":"Revisar","Notas de cambios":"120 ton de DOP para Plasticos Ceccan","Volumen Estimado: Compuestos":null,"Volumen Estimado: Plastificantes":null,"Estado":"A tiempo","Día":"miércoles","Hora":15},{"Marca temporal":"4/3/2026 16:23:10","Vendedor":"Juan","Semana":10,"Estado de Revisión":"Revisar","Notas de cambios":"Inventarios bajos en MECJ de materiales granel de SunMed. Próximos pedidos de 11P y TOTM PI para Quimidroga con urgencia de despacho. Incremento en volumen de 810TM hacia Estados Unidos.","Volumen Estimado: Compuestos":null,"Volumen Estimado: Plastificantes":null,"Estado":"A tiempo","Día":"miércoles","Hora":16},{"Marca temporal":"4/3/2026 17:06:38","Vendedor":"Irene","Semana":10,"Estado de Revisión":"Revisado","Notas de cambios":"Revisar PV-1903 y PV-1943.","Volumen Estimado: Compuestos":null,"Volumen Estimado: Plastificantes":null,"Estado":"A tiempo","Día":"miércoles","Hora":17},{"Marca temporal":"5/3/2026 21:19:07","Vendedor":"Tomas","Semana":10,"Estado de Revisión":"Revisado","Notas de cambios":"Algunos cambios en el FCST. Enviados por correo a Hector.","Volumen Estimado: Compuestos":null,"Volumen Estimado: Plastificantes":null,"Estado":"Fuera de tiempo","Día":"jueves","Hora":21},{"Marca temporal":"6/3/2026 12:25:00","Vendedor":"Daniel","Semana":10,"Estado de Revisión":"Sin cambios","Notas de cambios":"todo ok","Volumen Estimado: Compuestos":null,"Volumen Estimado: Plastificantes":null,"Estado":"Fuera de tiempo","Día":"viernes","Hora":12},{"Marca temporal":"11/3/2026 14:21:45","Vendedor":"Daniel","Semana":11,"Estado de Revisión":"Revisar","Notas de cambios":null,"Volumen Estimado: Compuestos":null,"Volumen Estimado: Plastificantes":null,"Estado":"A tiempo","Día":"miércoles","Hora":14},{"Marca temporal":"12/3/2026 7:50:23","Vendedor":"Tomas","Semana":11,"Estado de Revisión":"Revisado","Notas de cambios":"Algunos cambios en el programa","Volumen Estimado: Compuestos":null,"Volumen Estimado: Plastificantes":null,"Estado":"A tiempo","Día":"jueves","Hora":7},{"Marca temporal":"12/3/2026 9:47:58","Vendedor":"Luis","Semana":11,"Estado de Revisión":"Revisado","Notas de cambios":"Se reacomoda vol de BBRAUN y GVS. Se anticipa continuar con consumo de GVS e incremento de BBRAUN en 2760 de 40.5 a 60.75","Volumen Estimado: Compuestos":null,"Volumen Estimado: Plastificantes":null,"Estado":"A tiempo","Día":"jueves","Hora":9},{"Marca temporal":"12/3/2026 10:10:02","Vendedor":"Irene","Semana":11,"Estado de Revisión":"Revisar","Notas de cambios":"Revisar fabricaciones: PV-1943, IZTABLEND 2002-2C-004, PV-1710, IZTABLEND 2002-5C-057, PR-015 BLANCO, PV-1996 Natural","Volumen Estimado: Compuestos":null,"Volumen Estimado: Plastificantes":null,"Estado":"Fuera de tiempo","Día":"jueves","Hora":10},{"Marca temporal":"12/3/2026 10:34:47","Vendedor":"Juan","Semana":11,"Estado de Revisión":"Revisar","Notas de cambios":"Retrasos Falcon. Inventarios pendientes SunMed. Incremento demanda TOTM en Europa.","Volumen Estimado: Compuestos":null,"Volumen Estimado: Plastificantes":null,"Estado":"Fuera de tiempo","Día":"jueves","Hora":10},{"Marca temporal":"18/3/2026 16:46:04","Vendedor":"Luis","Semana":12,"Estado de Revisión":"Revisar","Notas de cambios":"Incremento en volumen de BBRAUN (40.5 TONS adelantadas) y CCS (2 camiones de PR-515 se adelantan igual)","Volumen Estimado: Compuestos":null,"Volumen Estimado: Plastificantes":null,"Estado":"A tiempo","Día":"miércoles","Hora":16},{"Marca temporal":"18/3/2026 16:59:54","Vendedor":"Daniel","Semana":12,"Estado de Revisión":"Revisar","Notas de cambios":null,"Volumen Estimado: Compuestos":null,"Volumen Estimado: Plastificantes":null,"Estado":"A tiempo","Día":"miércoles","Hora":16},{"Marca temporal":"18/3/2026 19:45:07","Vendedor":"Tomas","Semana":12,"Estado de Revisión":"Revisado","Notas de cambios":"Solo cambios en Bard: compuesto -78 sube de 30 a 57 tons, -65 baja de 45 a 27 tons. Resto sin cambios.","Volumen Estimado: Compuestos":null,"Volumen Estimado: Plastificantes":null,"Estado":"A tiempo","Día":"miércoles","Hora":19},{"Marca temporal":"18/3/2026 21:23:56","Vendedor":"Juan","Semana":12,"Estado de Revisión":"Revisar","Notas de cambios":"Incrementar inventarios PV-7001-77 CRS 210 y PV-7001-61 CRS 507 (urgentes). Fechas SOP Quimidroga, Westlake y Manner. CABOPOL envasar 54 ton TOTM PI pendientes de orden.","Volumen Estimado: Compuestos":null,"Volumen Estimado: Plastificantes":null,"Estado":"A tiempo","Día":"miércoles","Hora":21},{"Marca temporal":"19/3/2026 11:54:24","Vendedor":"Irene","Semana":12,"Estado de Revisión":"Revisar","Notas de cambios":"Revisar fabricación PR-015 cristal y blanco y el PV-1943","Volumen Estimado: Compuestos":null,"Volumen Estimado: Plastificantes":null,"Estado":"Fuera de tiempo","Día":"jueves","Hora":11},{"Marca temporal":"26/3/2026 11:19:04","Vendedor":"Daniel","Semana":13,"Estado de Revisión":"Revisar","Notas de cambios":null,"Volumen Estimado: Compuestos":null,"Volumen Estimado: Plastificantes":null,"Estado":"Fuera de tiempo","Día":"jueves","Hora":11},{"Marca temporal":"1/4/2026 13:03:41","Vendedor":"Daniel","Semana":14,"Estado de Revisión":"Revisar","Notas de cambios":null,"Volumen Estimado: Compuestos":null,"Volumen Estimado: Plastificantes":null,"Estado":"A tiempo","Día":"miércoles","Hora":13},{"Marca temporal":"9/4/2026 11:59:37","Vendedor":"Daniel","Semana":15,"Estado de Revisión":"Revisar","Notas de cambios":null,"Volumen Estimado: Compuestos":null,"Volumen Estimado: Plastificantes":null,"Estado":"Fuera de tiempo","Día":"jueves","Hora":11},{"Marca temporal":"16/4/2026 12:05:33","Vendedor":"Daniel","Semana":16,"Estado de Revisión":"Revisar","Notas de cambios":null,"Volumen Estimado: Compuestos":null,"Volumen Estimado: Plastificantes":null,"Estado":"Fuera de tiempo","Día":"jueves","Hora":12},{"Marca temporal":"23/4/2026 10:52:01","Vendedor":"Daniel","Semana":17,"Estado de Revisión":"Revisar","Notas de cambios":null,"Volumen Estimado: Compuestos":null,"Volumen Estimado: Plastificantes":null,"Estado":"Fuera de tiempo","Día":"jueves","Hora":10},{"Marca temporal":"30/4/2026 12:09:22","Vendedor":"Daniel","Semana":18,"Estado de Revisión":"Revisar","Notas de cambios":null,"Volumen Estimado: Compuestos":null,"Volumen Estimado: Plastificantes":null,"Estado":"Fuera de tiempo","Día":"jueves","Hora":12},{"Marca temporal":"7/5/2026 10:06:48","Vendedor":"Daniel","Semana":19,"Estado de Revisión":"Revisar","Notas de cambios":null,"Volumen Estimado: Compuestos":null,"Volumen Estimado: Plastificantes":null,"Estado":"Fuera de tiempo","Día":"jueves","Hora":10}];
+const MASTER=['Luis','Juan','Mercedes','Jose Maria','Tomas','Omar','Cesar','Gerardo','Rafael','Irene','Ichell','Enrique','Daniel'];
+
+// ── Helpers: calcular Semana y Puntualidad desde Marca Temporal ──
+function parseDate(str){
+  if(!str) return null;
+  const [datePart,timePart='0:0:0']=str.split(' ');
+  const [d,m,y]=datePart.split('/').map(Number);
+  const [h,min]=timePart.split(':').map(Number);
+  return new Date(y,m-1,d,h,min);
+}
+function weekNum(str){
+  const d=parseDate(str); if(!d) return null;
+  const jan1=new Date(d.getFullYear(),0,1);
+  return Math.ceil(((d-jan1)/86400000+jan1.getDay()+1)/7);
+}
+function getPuntualidad(str){
+  const d=parseDate(str); if(!d) return 'A tiempo';
+  const day=d.getDay(); // 0=Dom … 4=Jue
+  const h=d.getHours();
+  if(day<4) return 'A tiempo';
+  if(day===4 && h<10) return 'A tiempo';
+  return 'Fuera de tiempo';
+}
+
+
+// getActiveData() siempre recalcula desde RAW → evita referencias estáticas
+function getActiveData(){
+  return RAW.map(r=>({...r,
+    Semana: weekNum(r['Marca temporal']),
+    Estado: getPuntualidad(r['Marca temporal'])
+  }));
+}
+
+let dChart,bChart,lChart;
+let filtroB='Revisar';
+function setFiltroB(val){
+  filtroB=val;
+  // Actualizar pills
+  ['Revisar','Revisado','Todos'].forEach(v=>{
+    const p=document.getElementById('pill-'+v);
+    p.className=v===val?'pill pill-active':'pill';
+  });
+  updateTablaB(getFiltered());
+}
+function getFiltered(){
+  const data=getActiveData();
+  const s=document.getElementById('semanaFilter').value;
+  return s==='all'?data:data.filter(r=>r.Semana==s);
+}
+function update(){
+  const data=getFiltered();
+  const ent=[...new Set(data.map(r=>r.Vendedor))];
+  const pen=MASTER.filter(v=>!ent.includes(v));
+  document.getElementById('k-total').textContent=data.length;
+  document.getElementById('k-revisar').textContent=data.filter(r=>r['Estado de Revisión']==='Revisar').length;
+  document.getElementById('k-revisado').textContent=data.filter(r=>r['Estado de Revisión']==='Revisado').length;
+  document.getElementById('k-pendiente').textContent=pen.length;
+  document.getElementById('ent-num').textContent=ent.length;
+  const pl=document.getElementById('pending-label');
+  if(pen.length>0){pl.style.color='#f59e0b';pl.textContent='Pendientes de entregar:';document.getElementById('pending-tags').innerHTML=pen.map(v=>`<span class="tag">${v}</span>`).join('');}
+  else{pl.style.color='#22c55e';pl.textContent='✓ Todos entregaron en este período';document.getElementById('pending-tags').innerHTML='';}
+  updateDonut(
+    data.filter(r=>r.Estado==='A tiempo').length,
+    data.filter(r=>r.Estado==='Fuera de tiempo').length,
+    pen.length
+  );
+  const cnt={};data.forEach(r=>{cnt[r['Estado de Revisión']]=(cnt[r['Estado de Revisión']]||0)+1;});
+  updateBar(cnt);
+  updateTablaB(data);
+}
+function updateTablaB(data){
+  const badgeClass={'Revisar':'b-tarde','Revisado':'b-ok','Sin cambios':'b-sem'};
+  const rows=filtroB==='Todos'?data:data.filter(r=>r['Estado de Revisión']===filtroB);
+  const tb=document.getElementById('urgentes-body');
+  tb.innerHTML=rows.length===0
+    ?`<tr><td colspan="3" class="empty">Sin registros para "${filtroB}" en el periodo seleccionado</td></tr>`
+    :rows.map(r=>`<tr>
+        <td class="b">${r.Vendedor}</td>
+        <td><span class="badge b-sem">S${r.Semana}</span>&nbsp;<span class="badge ${badgeClass[r['Estado de Revisión']]||'b-sem'}">${r['Estado de Revisión']}</span></td>
+        <td class="note">${r['Notas de cambios']||'<em style="color:#94a3b8">Sin notas</em>'}</td>
+      </tr>`).join('');
+}
+function updateDonut(ok,late,pen){
+  const ctx=document.getElementById('donutChart').getContext('2d');
+  if(dChart)dChart.destroy();
+  const total=ok+late;
+  const showPen=pen>0;
+  const labels=showPen?['A tiempo','Fuera de tiempo','Pendientes']:['A tiempo','Fuera de tiempo'];
+  const vals=showPen?[ok,late,pen]:[ok,late];
+  const colors=showPen?['#3b82f6','#8b5cf6','#e2e8f0']:['#3b82f6','#8b5cf6'];
+  dChart=new Chart(ctx,{type:'doughnut',data:{labels,datasets:[{data:vals,backgroundColor:colors,borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,cutout:'70%',plugins:{legend:{position:'bottom',labels:{color:'#64748b',font:{size:11},padding:12}},tooltip:{callbacks:{label:c=>`${c.label}: ${c.raw} vendedores`}}}}});
+  document.getElementById('ent-num').textContent=total;
+}
+function updateBar(cnt){const labels=['Revisar','Revisado','Sin cambios'];const colors=['#ef4444','#22c55e','#94a3b8'];const ctx=document.getElementById('barChart').getContext('2d');if(bChart)bChart.destroy();bChart=new Chart(ctx,{type:'bar',data:{labels,datasets:[{data:labels.map(l=>cnt[l]||0),backgroundColor:colors,borderRadius:5,borderSkipped:false}]},options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.raw} vendedores`}}},scales:{x:{grid:{color:'#e2e8f0'},ticks:{color:'#64748b',stepSize:1}},y:{grid:{display:false},ticks:{color:'#475569',font:{size:13}}}}}});}
+function initLine(){const data=getActiveData();const bs={};data.forEach(r=>{bs[r.Semana]=(bs[r.Semana]||0)+1;});const sems=Object.keys(bs).map(Number).sort((a,b)=>a-b);const ctx=document.getElementById('lineChart').getContext('2d');lChart=new Chart(ctx,{type:'line',data:{labels:sems.map(s=>`S${s}`),datasets:[{label:'Reportes',data:sems.map(s=>bs[s]),borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,.08)',borderWidth:2,pointBackgroundColor:'#3b82f6',pointRadius:4,tension:0.35,fill:true}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{grid:{color:'#e2e8f0'},ticks:{color:'#64748b',font:{size:11}}},y:{grid:{color:'#e2e8f0'},ticks:{color:'#64748b',stepSize:1}}}}});}
+function initSemanas(){const data=getActiveData();const sems=[...new Set(data.map(r=>r.Semana))].sort((a,b)=>a-b);const sel=document.getElementById('semanaFilter');sems.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=`Semana ${s}`;sel.appendChild(o);});}
+async function fetchInsight(){
+  const btn=document.getElementById('aiBtn'),out=document.getElementById('ai-output');
+  btn.disabled=true;btn.textContent='⏳ Analizando...';
+  out.innerHTML='<div style="color:#818cf8;text-align:center;padding:20px">Claude está analizando los datos de tu equipo S&OP...</div>';
+  const data=getFiltered();
+  const semStr=document.getElementById('semanaFilter').value;
+  const semLabel=semStr==='all'?'todas las semanas registradas (S1–S19)':'semana '+semStr;
+  const ent=[...new Set(data.map(r=>r.Vendedor))];
+  const pen=MASTER.filter(v=>!ent.includes(v));
+  const urg=data.filter(r=>r['Estado de Revisión']==='Revisar');
+  const ft=data.filter(r=>r.Estado==='Fuera de tiempo');
+  const cnt={};data.forEach(r=>{cnt[r['Estado de Revisión']]=(cnt[r['Estado de Revisión']]||0)+1;});
+  const urgStr=urg.map(r=>`- ${r.Vendedor} (S${r.Semana}): ${r['Notas de cambios']||'Sin notas'} [${r.Estado}]`).join('\n');
+  const prompt=`Eres un asistente especializado en S&OP para una empresa de materiales plásticos (compuestos y plastificantes).\n\nCONTEXTO: ${semLabel}\nPARTICIPACIÓN: ${ent.length} de 14 vendedores entregaron su estimado.\nENTREGARON: ${ent.join(', ')}\nPENDIENTES: ${pen.length>0?pen.join(', '):'Ninguno'}\nDISTRIBUCIÓN: Revisar: ${cnt['Revisar']||0}, Revisado: ${cnt['Revisado']||0}, Sin cambios: ${cnt['Sin cambios']||0}\nFUERA DE TIEMPO: ${ft.length} registros\n\nREGISTROS PARA REVISAR EN JUNTA:\n${urgStr||'Ninguno'}\n\nGenera:\n1. 📋 APERTURA DE JUNTA (2-3 oraciones ejecutivas para arrancar la sesión S&OP)\n2. 🔥 PUNTOS CRÍTICOS (máx. 3 bullets concretos con clientes y SKUs específicos cuando aplique)\n3. ⚠️ ALERTAS OPERATIVAS (patrones recurrentes, clientes frecuentes, urgencias de inventario o exportación)\n4. ✅ ACCIÓN PARA PENDIENTES\n\nResponde en español, tono ejecutivo, conciso y accionable.`;
+  try{
+    const res=await fetch('/.netlify/functions/claude-proxy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
+    const d=await res.json();
+    const text=(d.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+    out.innerHTML=text?`<div style="white-space:pre-wrap;line-height:1.8">${text}</div>`:'<div style="color:#ef4444">Sin respuesta. Intenta de nuevo.</div>';
+  }catch(e){out.innerHTML=`<div style="color:#ef4444;padding:10px">✗ ${e.message||'Error desconocido'}</div>`;}
+  btn.disabled=false;btn.textContent='✦ Generar Insights';
+}
+
+// ── Conexión Airtable ──────────────────────────────────────────
+const AT_BASE  = 'appaKnm0Pf4zRsXXb';
+const AT_TABLE = 'tblKnI1XndPxahdCh';
+const AT_PAT   = 'patJFUSOXJMK5pb1w.392649078e06a0d45dbae9c22e2f922b094e9d90a9ffd498624be2e6b1932490';
+
+async function loadFromAirtable(){
+  let records=[], offset=null;
+  do {
+    let url=`https://api.airtable.com/v0/${AT_BASE}/${AT_TABLE}?pageSize=100`;
+    if(offset) url+=`&offset=${encodeURIComponent(offset)}`;
+    const res=await fetch(url,{headers:{'Authorization':`Bearer ${AT_PAT}`}});
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json=await res.json();
+    records=records.concat(json.records);
+    offset=json.offset||null;
+  } while(offset);
+
+  return records.map(r=>{
+    const f=r.fields;
+    const str=v=>typeof v==='object'&&v!==null?v.name:(v||null);
+    // Usar campo "Fecha de Creación" (Created time) de Airtable → convierte a hora local del navegador
+    const d=new Date(f['Fecha de Creación']||r.createdTime);
+    const pad=n=>String(n).padStart(2,'0');
+    const marca=`${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    return {
+      'Marca temporal': marca,
+      'Vendedor': str(f['Vendedor']),
+      'Estado de Revisión': str(f['Estado de Revisión']),
+      'Notas de cambios': f['Notas de Cambios']||f['Notas de cambios']||null,
+      'Volumen Estimado: Compuestos': f['Volumen Estimado Compuestos (ton)']||f['Volumen Estimado: Compuestos']||null,
+      'Volumen Estimado: Plastificantes': f['Volumen Estimado Plastificantes (ton)']||f['Volumen Estimado: Plastificantes']||null
+    };
+  }).filter(r=>r.Vendedor);
+}
+
+function refreshCharts(){
+  // Reconstruir selector de semanas desde RAW actualizado
+  const data=getActiveData();
+  const sel=document.getElementById('semanaFilter');
+  while(sel.options.length>1) sel.remove(1);
+  [...new Set(data.map(r=>r.Semana))].sort((a,b)=>a-b)
+    .forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=`Semana ${s}`;sel.appendChild(o);});
+  // Redibujar todas las gráficas
+  if(lChart){lChart.destroy();lChart=null;}
+  if(dChart){dChart.destroy();dChart=null;}
+  if(bChart){bChart.destroy();bChart=null;}
+  update();
+  initLine();
+}
+
+async function recargar(){
+  const banner=document.getElementById('loading-banner');
+  const btn=document.getElementById('refreshBtn');
+  banner.style.display='block';
+  banner.style.background='#eff6ff';banner.style.color='#1d4ed8';
+  banner.textContent='⏳ Cargando datos desde Airtable...';
+  btn.disabled=true;
+  try{
+    const atRecords=await loadFromAirtable();
+    if(atRecords.length>0){
+      RAW.length=0;
+      atRecords.forEach(r=>RAW.push(r));
+      banner.style.background='#f0fdf4';banner.style.color='#166534';banner.style.borderColor='#bbf7d0';
+      banner.textContent=`✓ ${atRecords.length} registros cargados desde Airtable`;
+    } else {
+      banner.style.background='#fefce8';banner.style.color='#854d0e';banner.style.borderColor='#fde68a';
+      banner.textContent='⚠️ Airtable no devolvió registros — verifica tu tabla';
+    }
+    refreshCharts();
+  }catch(e){
+    banner.style.background='#fff1f2';banner.style.color='#9f1239';banner.style.borderColor='#fecdd3';
+    banner.textContent=`✗ Error al conectar con Airtable: ${e.message}. Mostrando datos de ejemplo.`;
+    refreshCharts();
+  }
+  btn.disabled=false;
+  setTimeout(()=>{banner.style.display='none';},4000);
+}
+
+// ── Inicio ────────────────────────────────────────────────────
+initSemanas();update();initLine();
+recargar(); // carga Airtable automáticamente al abrir
+</script>
+</body>
+</html>
